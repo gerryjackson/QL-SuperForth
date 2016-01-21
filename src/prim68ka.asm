@@ -111,7 +111,7 @@ mess_ad         macro                   Deposits the offset to a message
                 dc.w    message\1-*     in the message vector table
                 endm
 *
-string_b        macro                   Deposits a string with
+string_b        macro                   Deposits a string with the
                 dc.b    sb\@-*-1        length in a byte
                 dc.b    \1
 sb\@

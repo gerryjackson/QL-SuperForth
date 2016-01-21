@@ -1,190 +1,190 @@
 ( FORTH 83 Cross compiler -   String handling )
 
-(	Last modified:	21 October 1986 )
+( Last modified:   21 October 1986 )
 
-X: CHECK_SIZE
-	DUP 255 U>
-	IF 24 ERROR THEN   ;
+x: check_size
+   dup 255 u>
+   if 24 error then   ;
 
-: STRING
-	CHECK_SIZE
-	CREATE
-	  DUP C, 0 C,
-	  ALLOT DP_EVEN
-	DOES>
-	  1+		;
+: string
+   check_size
+   create
+     dup c, 0 c,
+     allot dp_even
+   does>
+     1+      ;
 
-: INPUT
-	DUP 1+ DUP 2-
-	C@ EXPECT SPAN @
-	SWAP C!		;
+: input
+   dup 1+ dup 2-
+   c@ expect span @
+   swap c!      ;
 
-X: MOVE_IT
-	DUP 1+ OVER C@ 1+
-	DUP 1+ ALLOT
-	CMOVE> DP_EVEN	;
+x: move_it
+   dup 1+ over c@ 1+
+   dup 1+ allot
+   cmove> dp_even   ;
 
-: READ"
-	$" WORD STATE @
-	IF
-	  COMPILE (READ")
-	  MOVE_IT EXIT
-	THEN
-	2DUP C@ SWAP 1- C@ >
-	IF 23 ERROR THEN
-	SWAP OVER C@ 1+ CMOVE	;	immediate
+: read"
+   $" word state @
+   if
+     compile (read")
+     move_it exit
+   then
+   2dup c@ swap 1- c@ >
+   if 23 error then
+   swap over c@ 1+ cmove   ;   immediate
 
-: LENGTH C@	;		 -- Put this into code file
+: length c@   ;       -- put this into code file
 
-: MAX_LEN
-	1- C@	;
+: max_len
+   1- c@   ;
 
-: STR_ARRAY
-	CHECK_SIZE
-	CREATE
-	  SWAP DUP , 0
-	  DO
-	    DUP C, 0 C,
-	    DUP ALLOT DP_EVEN
-	  LOOP
-	  DROP
-	DOES>
-	  2DUP @ U< 0=
-	  IF 25 ERROR THEN
-	  2+ SWAP OVER C@
-	  2+ 1+ -2 AND
-	  * + 1+	;
+: str_array
+   check_size
+   create
+     swap dup , 0
+     do
+       dup c, 0 c,
+       dup allot dp_even
+     loop
+     drop
+   does>
+     2dup @ u< 0=
+     if 25 error then
+     2+ swap over c@
+     2+ 1+ -2 and
+     * + 1+   ;
 
-: CLEAR
-	0 SWAP C!	;
+: clear
+   0 swap c!   ;
 
-: INS/DEL
-	ROT >R SWAP 1 MAX
-	R@ 1- C@ MIN
-	1- SWAP DUP 0<
-	IF
-	  NEGATE OVER 1+ R@ +
-	  2DUP + SWAP OVER
-	  R@ - R@ C@ 1+
-	  SWAP - 0 MAX CMOVE
-	  R@ C@ SWAP - MAX
-	  R@ C@ MIN R> C!
-	  EXIT
-	THEN
-	  2DUP + OVER R@ C@ +
-	  R@ 1- C@ MIN
-	  DUP R@ C! SWAP -
-	  R> SWAP >R
-	  ROT 1+ + SWAP OVER +
-	  R> 0 MAX CMOVE>	;
+: ins/del
+   rot >r swap 1 max
+   r@ 1- c@ min
+   1- swap dup 0<
+   if
+     negate over 1+ r@ +
+     2dup + swap over
+     r@ - r@ c@ 1+
+     swap - 0 max cmove
+     r@ c@ swap - max
+     r@ c@ min r> c!
+     exit
+   then
+     2dup + over r@ c@ +
+     r@ 1- c@ min
+     dup r@ c! swap -
+     r> swap >r
+     rot 1+ + swap over +
+     r> 0 max cmove>   ;
 
-X: CHECK_PARS
-	DUP 0<
-	>R OVER 0= >R
-	OVER 3 PICK C@ 1+ U>
-	R> OR R> OR
-	IF 25 ERROR THEN
-	 2 PICK 	;
+x: check_pars
+   dup 0<
+   >r over 0= >r
+   over 3 pick c@ 1+ u>
+   r> or r> or
+   if 25 error then
+    2 pick    ;
 
-X: MAKE_SPACE
-	CHECK_PARS 2DUP
-	C@ + SWAP 1- C@ >
-	IF 23 ERROR THEN
-	INS/DEL ;
+x: make_space
+   check_pars 2dup
+   c@ + swap 1- c@ >
+   if 23 error then
+   ins/del ;
 
-X: CHECK_PARS2
-	2DUP + >R
-	CHECK_PARS C@ 1+ R> <
-	IF 25 ERROR THEN	;
+x: check_pars2
+   2dup + >r
+   check_pars c@ 1+ r> <
+   if 25 error then   ;
 
-: LOSE
-	CHECK_PARS2
-	NEGATE INS/DEL	;
+: lose
+   check_pars2
+   negate ins/del   ;
 
-X: (INSERT)
-	>r OVER MAX_LEN OVER - 1+
-	R> MIN >R
-	+ SWAP 1+ SWAP R>
-	CMOVE>	;
+x: (insert)
+   >r over max_len over - 1+
+   r> min >r
+   + swap 1+ swap r>
+   cmove>   ;
 
-: INSERT
-	2DUP four PICK
-	C@ DUP >R MAKE_SPACE r>
-        (INSERT)	;
-	
-: INS_CHAR
-	2DUP 1 MAKE_SPACE
-	OVER MAX_LEN OVER <
-	IF 3DROP EXIT THEN
-	+ C! ;
+: insert
+   2dup four pick
+   c@ dup >r make_space r>
+        (insert)   ;
+   
+: ins_char
+   2dup 1 make_space
+   over max_len over <
+   if 3drop exit then
+   + c! ;
 
-: APP_CHAR
-	DUP C@ 1+ INS_CHAR	;
+: app_char
+   dup c@ 1+ ins_char   ;
 
-: APPEND
-	DUP C@ 1+ INSERT	;
+: append
+   dup c@ 1+ insert   ;
 
-: SLICE
-	2DUP 1- C@ >
-	IF 23 ERROR THEN
-	>R CHECK_PARS2 >R + R>
-	R@ 1- C@ MIN
-	R> 2DUP C!
-	1+ SWAP CMOVE	;
+: slice
+   2dup 1- c@ >
+   if 23 error then
+   >r check_pars2 >r + r>
+   r@ 1- c@ min
+   r> 2dup c!
+   1+ swap cmove   ;
 
-: TAKE	>R
-	2 PICK 2 PICK 2 PICK
-	R> SLICE LOSE	;
+: take   >r
+   2 pick 2 pick 2 pick
+   r> slice lose   ;
 
-X: CHECK_POS
-	OVER MAX_LEN OVER < >R
-	OVER C@ OVER U<
-	OVER 0= OR R> OR	;
+x: check_pos
+   over max_len over < >r
+   over c@ over u<
+   over 0= or r> or   ;
 
-: CHAR	CHECK_POS
-	IF 25 ERROR THEN
-	+ C@		;
+: char   check_pos
+   if 25 error then
+   + c@      ;
 
-: TAKE_CHAR
-	2DUP CHAR
-	>R 1 LOSE R>	;
+: take_char
+   2dup char
+   >r 1 lose r>   ;
 
-: REPLACE
-	DUP 0> 0= >R
-	OVER C@ OVER - 1+
-	3 PICK C@ <
-	R> OR
-	IF 25 ERROR THEN
-	2 PICK C@
-	(INSERT)	;
+: replace
+   dup 0> 0= >r
+   over c@ over - 1+
+   3 pick c@ <
+   r> or
+   if 25 error then
+   2 pick c@
+   (insert)   ;
 
-: REPL_CHAR
-	CHECK_POS
-	IF 25 ERROR 3DROP EXIT THEN
-	+ c!	;
+: repl_char
+   check_pos
+   if 25 error 3drop exit then
+   + c!   ;
 
-: UNUSED
-	DUP MAX_LEN
-	SWAP C@ -
-	0 MAX	;
+: unused
+   dup max_len
+   swap c@ -
+   0 max   ;
 
-: $=	2 COMPARE 0=	;
+: $=   2 compare 0=   ;
 
-: $==	3 COMPARE 0=	;
+: $==   3 compare 0=   ;
 
-: $<	2 COMPARE 0<	;
+: $<   2 compare 0<   ;
 
-: $>	2 COMPARE 0>	;
+: $>   2 compare 0>   ;
 
-: C==	UP_CHAR SWAP
-	UP_CHAR =	;
+: c==   up_char swap
+   up_char =   ;
 
-: STR_CONST
-	CREATE
-	  -1 >IN +!
-	  $" WORD DROP
-	  -2 ALLOT $" WORD
-	  2 ALLOT MOVE_IT
-	DOES>
-	  1+		;
+: str_const
+   create
+     -1 >in +!
+     $" word drop
+     -2 allot $" word
+     2 allot move_it
+   does>
+     1+      ;
 

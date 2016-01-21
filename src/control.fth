@@ -1,100 +1,100 @@
 ( FORTH 83 Cross compiler -  Control structure definitions )
 
-( Last modified		21 October 1986 )
+( Last modified      21 October 1986 )
 
-: >MARK	?COMP HERE 0 ,	;
+: >mark   ?comp here 0 ,   ;
 
-: >RESOLVE
-	?COMP HERE OVER -
-	SWAP !	;
+: >resolve
+   ?comp here over -
+   swap !   ;
 
-: <MARK	?COMP HERE	;
+: <mark   ?comp here   ;
 
-: <RESOLVE
-	?COMP HERE - ,	;
+: <resolve
+   ?comp here - ,   ;
 
-: IF	COMPILE ?BRANCH >MARK 1	;	IMMEDIATE
+: if   compile ?branch >mark 1   ;   immediate
 
-: ELSE	1 ?PAIRS COMPILE BRANCH
-	>MARK
-	>R >RESOLVE R> 1	;	IMMEDIATE
+: else   1 ?pairs compile branch
+   >mark
+   >r >resolve r> 1   ;   immediate
 
-: THEN	1 ?PAIRS >RESOLVE	;	IMMEDIATE
+: then   1 ?pairs >resolve   ;   immediate
 
 : abort"
-	?comp
-	[compile] if
-	compile cr
-	[compile] ."
-	compile abort
-	[compile] then	;	immediate
+   ?comp
+   [compile] if
+   compile cr
+   [compile] ."
+   compile abort
+   [compile] then   ;   immediate
 
-: BEGIN	<MARK 2		;	IMMEDIATE
+: begin   <mark 2      ;   immediate
 
-: UNTIL	2 ?PAIRS
-	COMPILE ?BRANCH
-	<RESOLVE	;	IMMEDIATE
+: until   2 ?pairs
+   compile ?branch
+   <resolve   ;   immediate
 
-: WHILE	[COMPILE] IF 2+	;	IMMEDIATE
+: while   [compile] if 2+   ;   immediate
 
-: REPEAT
-	>R >R 2 ?PAIRS
-	COMPILE BRANCH
-	<RESOLVE
-	R> R> 2- [COMPILE] THEN	;	IMMEDIATE
+: repeat
+   >r >r 2 ?pairs
+   compile branch
+   <resolve
+   r> r> 2- [compile] then   ;   immediate
 
-: DO	do_list @ NIL do_list !
-	COMPILE (DO) <MARK -1	;	IMMEDIATE
+: do   do_list @ nil do_list !
+   compile (do) <mark -1   ;   immediate
 
-X: RESOLVE_LEAVES
-	-1 ?PAIRS <RESOLVE
-	do_list @
-	BEGIN
-	  DUP NIL <>
-	WHILE
-	  DUP @ SWAP
-	  >RESOLVE
-	REPEAT
-	DROP do_list !	;
+x: resolve_leaves
+   -1 ?pairs <resolve
+   do_list @
+   begin
+     dup nil <>
+   while
+     dup @ swap
+     >resolve
+   repeat
+   drop do_list !   ;
 
-: LOOP	COMPILE (LOOP)
-	RESOLVE_LEAVES	;	IMMEDIATE
+: loop   compile (loop)
+   resolve_leaves   ;   immediate
 
-: +LOOP	COMPILE (+LOOP)
-	RESOLVE_LEAVES	;	IMMEDIATE
+: +loop   compile (+loop)
+   resolve_leaves   ;   immediate
 
-: LEAVE
-	COMPILE (LEAVE)
-	do_list @
-	HERE do_list ! ,	;	IMMEDIATE
+: leave
+   compile (leave)
+   do_list @
+   here do_list ! ,   ;   immediate
 
-: CASE	?COMP
-	CSP @ CSP! four	;  IMMEDIATE
+: case   ?comp
+   csp @ csp! four   ;  immediate
 
-X: TEST_EQUAL
-	OVER = DUP
-	IF SWAP DROP THEN ;
+x: test_equal
+   over = dup
+   if swap drop then ;
 
-: OF	four ?PAIRS
-	COMPILE TEST_EQUAL
-	COMPILE ?BRANCH
-	>MARK five		;  IMMEDIATE
+: of   four ?pairs
+   compile test_equal
+   compile ?branch
+   >mark five      ;  immediate
 
-: ENDOF
-	five ?PAIRS
-	COMPILE BRANCH >MARK
-	SWAP 1
-	[COMPILE] THEN four   ;  IMMEDIATE
+: endof
+   five ?pairs
+   compile branch >mark
+   swap 1
+   [compile] then four   ;  immediate
 
-: DEFAULT
-	?COMP COMPILE DROP ;   IMMEDIATE
+: default
+   ?comp compile drop ;   immediate
 
-: ENDCASE
-	four ?PAIRS
-	BEGIN
-	  SP@ CSP @ -
-	WHILE
-	  1 [COMPILE] THEN
-	REPEAT
-	CSP !		;  IMMEDIATE
+: endcase
+   four ?pairs
+   begin
+     sp@ csp @ -
+   while
+     1 [compile] then
+   repeat
+   csp !      ;  immediate
 

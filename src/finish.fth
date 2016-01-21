@@ -1,6 +1,6 @@
---	FORTH 83 Cross Compiler -  Re-order dictionary and save compiled code
+-- FORTH 83 Cross Compiler -  Re-order dictionary and save compiled code
 
---	Last modified:	11 November 1986
+-- Last modified:   11 November 1986
 
 cr cr .( Re-ordering words in dictionary ... )
 
@@ -29,7 +29,7 @@ only_word also
 only_word forth
 only_word only
 
-patch_target			-- Patch various target addresses
+patch_target      -- Patch various target addresses
 
 cr cr .( Saving image file ...  )
-sexec_target			-- and save target image
+sexec_target      -- and save target image

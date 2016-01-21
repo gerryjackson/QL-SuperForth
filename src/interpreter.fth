@@ -1,233 +1,233 @@
--- 	FORTH 83 Cross compiler -  Interpreter words
+-- FORTH 83 Cross compiler -  Interpreter words
 
---	 Modification record:
+-- Modification record:
 
---	13/11/86	RENAME definition added
+-- 13/11/86   RENAME definition added
 
-X: CDOT	
-	[ here 2- load_{(.")} ]	
-	(.") TYPE	;
+x: cdot   
+   [ here 2- load_{(.")} ]   
+   (.") type   ;
 
-: ."	?COMP $" WORD
-	COMPILE CDOT
-	C@ 1+ ALLOT
-	DP_EVEN	;	immediate
+: ."   ?comp $" word
+   compile cdot
+   c@ 1+ allot
+   dp_even   ;   immediate
  
-: .(	41 WORD
-	COUNT TYPE	;	immediate
+: .(   41 word
+   count type   ;   immediate
  
-: .s	cr ." ( ==>  "
-	depth 0>
-	if
-	  0 depth 2-
-	  do i pick . -1 +loop
-	then
-	."  ) top" cr	;
+: .s   cr ." ( ==>  "
+   depth 0>
+   if
+     0 depth 2-
+     do i pick . -1 +loop
+   then
+   ."  ) top" cr   ;
 
-: INTERPRET
-	BEGIN
-	  BL WORD DUP C@ 0=
-	  IF 
-	    BLK  @ IF ?EXEC THEN
-	    DROP EXIT
-	  THEN
-	  CONTEXT_SEEK NOT_NIL
-	  IF
-	    2+ C@ 64 AND STATE @ 0= OR
-	    IF EXECUTE ELSE , THEN
-	  ELSE
-	    DROP NUMBER DPL @ 1+
-	    IF
-	      STATE @
-	      IF SWAP [COMPILE] LITERAL THEN
-	    ELSE
-	      DROP
-	    THEN
-	    [COMPILE] LITERAL
-	  THEN
-	  ?STACK
-	0 until		;  -2 ALLOT
+: interpret
+   begin
+     bl word dup c@ 0=
+     if 
+       blk  @ if ?exec then
+       drop exit
+     then
+     context_seek not_nil
+     if
+       2+ c@ 64 and state @ 0= or
+       if execute else , then
+     else
+       drop number dpl @ 1+
+       if
+         state @
+         if swap [compile] literal then
+       else
+         drop
+       then
+       [compile] literal
+     then
+     ?stack
+   0 until      ;  -2 allot
 
-: LOAD
-	BLK @ >R BLK !
-	>IN @ >R 0 >IN !
-	INTERPRET
-	R> >IN !
-	R> BLK !	;
+: load
+   blk @ >r blk !
+   >in @ >r 0 >in !
+   interpret
+   r> >in !
+   r> blk !   ;
 
-X: SET_#0
-	#DEFAULT #IN  2!
-	#DEFAULT #OUT 2!	;
+x: set_#0
+   #default #in  2!
+   #default #out 2!   ;
 
-: OK	STATE @ 0=
-	IF
-	  ."  ok"
-	THEN
-	CR	;
+: ok   state @ 0=
+   if
+     ."  ok"
+   then
+   cr   ;
 
-EXVEC: PROMPT  ASSIGN PROMPT TO-DO OK
+exvec: prompt  assign prompt to-do ok
 
-: QUIT	SET_#0
-	[COMPILE] [ CR
-	BEGIN
-	(rp!) QUERY
-	INTERPRET PROMPT
-	0 until		;  -2 ALLOT
+: quit   set_#0
+   [compile] [ cr
+   begin
+   (rp!) query
+   interpret prompt
+   0 until      ;  -2 allot
 
-: (ERROR)
-	SET_#0
-	HERE 2+ COUNT TYPE
-	."  ? " CR
-	DUP 0<
-	IF
-	  LOAD_D0 #OUT 2@ 2DUP
-	  [ HEX CC DECIMAL ] LITERAL
-	  VEC_UT 3DROP QUIT
-	THEN
-	MESSAGE QUIT	;   -2 ALLOT
+: (error)
+   set_#0
+   here 2+ count type
+   ."  ? " cr
+   dup 0<
+   if
+     load_d0 #out 2@ 2dup
+     [ hex cc decimal ] literal
+     vec_ut 3drop quit
+   then
+   message quit   ;   -2 allot
 
-ASSIGN ERROR TO-DO (ERROR)
+assign error to-do (error)
 
-x: p_error			-- For primitive detected errors
-	[ here prim_error ! ]
-	error ;
+x: p_error         -- for primitive detected errors
+   [ here prim_error ! ]
+   error ;
 
-: (ABORT)
-	SP! QUIT  ;  -2 ALLOT
+: (abort)
+   sp! quit  ;  -2 allot
   
-EXVEC: ABORT	ASSIGN ABORT TO-DO (ABORT)
+exvec: abort   assign abort to-do (abort)
 
-: COLD
-	[ here cold_forth ! ]			-- Save address for patching
-	-32768					-- To be patched with FORTH LATEST
-	[ (forth) @ ] literal !			-- Patch vocabulary pointer
-	[ here cold_only  ! ]			-- Save address for patching
-	-32768					-- To be patched with ONLY LATEST
-	[ (only)  @ ] literal !			-- Patch vocabulary pointer
-	[ COLD_USERS @ ] literal		-- From
-	[ user_area @  ] literal		-- To
-	[ NUMBER_USERS @ ] literal		-- Number
-	CMOVE					-- Load cold start user values
-	-1 [ ' timeout >body ] literal !	-- Ensure Trap3 timeout is -1
-	SP! (rp!)
-	0 here 2+ !				-- To avoid a mess if an error
-	ASSIGN PROMPT TO-DO OK
-	ASSIGN ERROR  TO-DO (ERROR)
-	ASSIGN ABORT  TO-DO (ABORT)
-	ASSIGN CLS    TO-DO (CLS)
-	SET_#0 CLS EMPTY-BUFFERS
-	1 LOAD
-	CLS CR	12 MESSAGE
-	QUIT	;	-2 ALLOT
+: cold
+   [ here cold_forth ! ]         -- save address for patching
+   -32768                        -- to be patched with forth latest
+   [ (forth) @ ] literal !       -- patch vocabulary pointer
+   [ here cold_only  ! ]         -- save address for patching
+   -32768                        -- to be patched with only latest
+   [ (only)  @ ] literal !       -- patch vocabulary pointer
+   [ cold_users @ ] literal      -- from
+   [ user_area @  ] literal      -- to
+   [ number_users @ ] literal    -- number
+   cmove                         -- load cold start user values
+   -1 [ ' timeout >body ] literal ! -- ensure trap3 timeout is -1
+   sp! (rp!)
+   0 here 2+ !                   -- to avoid a mess if an error
+   assign prompt to-do ok
+   assign error  to-do (error)
+   assign abort  to-do (abort)
+   assign cls    to-do (cls)
+   set_#0 cls empty-buffers
+   1 load
+   cls cr   12 message
+   quit   ;   -2 allot
 
-X: SECRET_MESSAGE
-	CLS 15 MESSAGE
-	QUIT	;	-2 ALLOT
+x: forth_message
+   cls 15 message
+   quit   ;   -2 allot
 
-: FORGET
-	BL WORD LATEST SEEK
-	NOT_NIL ?FOUND DROP
-	SWAP FENCE @ < 9 ?ERROR
-	CONTEXT @ OVER >
-	OVER CURRENT @ < OR
-	IF
-	  ONLY FORTH DEFINITIONS
-	  CR 22 MESSAGE
-	THEN
-	>R XQ_LINK SNIP
-	BEGIN
-	  DUP 2- DUP @
-	  R@ >
-	  IF
-	    (XQ_ERROR) SWAP ! 0
-	  THEN
-	  DROP @ DUP NIL = 
-	UNTIL
-	DROP
-	VOC_LINK SNIP
-	BEGIN
-	  DUP four -
-	  BEGIN
-	    @ DUP R@ <
-	  UNTIL
-	  OVER four - !
-	  @ DUP NIL =
-	UNTIL
-	DROP R> DP !	;
+: forget
+   bl word latest seek
+   not_nil ?found drop
+   swap fence @ < 9 ?error
+   context @ over >
+   over current @ < or
+   if
+     only forth definitions
+     cr 22 message
+   then
+   >r xq_link snip
+   begin
+     dup 2- dup @
+     r@ >
+     if
+       (xq_error) swap ! 0
+     then
+     drop @ dup nil = 
+   until
+   drop
+   voc_link snip
+   begin
+     dup four -
+     begin
+       @ dup r@ <
+     until
+     over four - !
+     @ dup nil =
+   until
+   drop r> dp !   ;
 
 : (
-	41 word drop	;	immediate
+   41 word drop   ;   immediate
 
 : -->
-	blk @
-	if
-	  0 >in !
-	  1 blk +!
-	then		;	immediate
+   blk @
+   if
+     0 >in !
+     1 blk +!
+   then      ;   immediate
 
 : thru
-	1+ swap
-	do i load loop	;
+   1+ swap
+   do i load loop   ;
 
-X: SAVE_NAME
-	BL WORD
-	MOVE_HERE+64	;
+x: save_name
+   bl word
+   move_here+64   ;
 
-: OPEN
-	SAVE_NAME (OPEN)
-	CALL_?ERROR	;
+: open
+   save_name (open)
+   call_?error   ;
 
-: DELETE
-	SAVE_NAME (DELETE) ;
+: delete
+   save_name (delete) ;
 
-: NULL		;
+: null      ;
 
-: END_FILE
-	ASSIGN ERROR TO-DO (ERROR)
-	#DEFAULT #IN 2!
-	-1 KEY_INPUT !
-	ASSIGN PROMPT TO-DO OK
-	#FILE 2@ CLOSE		;
+: end_file
+   assign error to-do (error)
+   #default #in 2!
+   -1 key_input !
+   assign prompt to-do ok
+   #file 2@ close      ;
 
-X: LOAD_ERROR
-	END_FILE ERROR	;
+x: load_error
+   end_file error   ;
 
-: LOAD_FILE
-	0 OPEN 2DUP
-	#FILE 2!
-	#IN 2!
-	0 KEY_INPUT !
-	ASSIGN ERROR x_to-do LOAD_ERROR		-- load_error is headerless
-	ASSIGN PROMPT TO-DO NULL	;
+: load_file
+   0 open 2dup
+   #file 2!
+   #in 2!
+   0 key_input !
+   assign error x_to-do load_error  -- load_error is headerless
+   assign prompt to-do null   ;
 
-: OPEN_DEVICE
-	MOVE_HERE+64
-	(OPEN) CALL_?ERROR ;
+: open_device
+   move_here+64
+   (open) call_?error ;
 
-: rename		-- eg  RENAME file1 file2 ; file2 is the new name
-	0 open 2dup			-- (--- ID ID )
-	1 allot				-- To get word aligned string length
-	bl word
-	0 here ! -1 allot		-- Ensure ms byte of length is zero
-	dup c@ 0=
-	if 8 error then			-- ( --- ID ID ad1 )
-	1- 74 2swap 0			-- ( --- ID ad1-1 n1 ID 0 )
-	trap3 dup ?error		-- ( --- ID n3 n4 )
-	2drop close	;
+: rename             -- eg  rename file1 file2 ; file2 is the new name
+   0 open 2dup       -- (--- id id )
+   1 allot           -- to get word aligned string length
+   bl word
+   0 here ! -1 allot -- ensure ms byte of length is zero
+   dup c@ 0=
+   if 8 error then   -- ( --- id id ad1 )
+   1- 74 2swap 0     -- ( --- id ad1-1 n1 id 0 )
+   trap3 dup ?error  -- ( --- id n3 n4 )
+   2drop close   ;
 
-: DELETE_FILE
-	MOVE_HERE+64
-	(DELETE)	;
+: delete_file
+   move_here+64
+   (delete)   ;
 
-X: (STATUS)
-	(OPEN) >R (CLOSE)
-	3DROP R> DUP 0=
-	IF (DEL) 3DROP THEN	;
+x: (status)
+   (open) >r (close)
+   3drop r> dup 0=
+   if (del) 3drop then   ;
 
-: STATUS
-	2 SAVE_NAME (STATUS)	;
+: status
+   2 save_name (status)   ;
 
-: DEVICE_STATUS
-	2 SWAP MOVE_HERE+64 (STATUS)	;
+: device_status
+   2 swap move_here+64 (status)   ;
 
 

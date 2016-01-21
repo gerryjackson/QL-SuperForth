@@ -1,48 +1,48 @@
---	 FORTH 83 Cross compiler -  Error handling
+-- FORTH 83 Cross compiler -  Error handling
 
---	Last modified:	21 October 1986
+-- Last modified:   21 October 1986
 
-forth_address {exvec:}			-- Load address into {exvec:}
+forth_address {exvec:}           -- load address into {exvec:}
 
-] jump_to_does @ execute exit [		-- DOES> code for execution vectors
+] jump_to_does @ execute exit [  -- does> code for execution vectors
 
-forth_address {xq_error}	-- Must be loaded with address of (ERROR)
-				-- later, for now it allows ERROR to be created
-				-- (ERROR) cannot be created yet, it uses QUIT
+forth_address {xq_error}         -- must be loaded with address of (error)
+                                 -- later, for now it allows error to be created
+                                 -- (error) cannot be created yet, it uses quit
 
-EXVEC: ERROR		-- Note ERROR has not been assigned to anything yet
+exvec: error      -- note error has not been assigned to anything yet
 
-: ?ERROR
-	SWAP
-	IF
-	  ERROR EXIT
-	THEN
-	DROP		 ;
+: ?error
+   swap
+   if
+     error exit
+   then
+   drop       ;
  
-: ?EXEC
-	STATE @ 2 ?ERROR	;
+: ?exec
+   state @ 2 ?error   ;
 
-: ?FOUND
-	DUP 0= eight ?ERROR		;
+: ?found
+   dup 0= eight ?error      ;
 
-: ?COMP
-	STATE @ 0= 1 ?ERROR	;
+: ?comp
+   state @ 0= 1 ?error   ;
 
-X: ?CSP
-	SP@ CSP @ -
-	four ?ERROR		;
+x: ?csp
+   sp@ csp @ -
+   four ?error      ;
 
-: ?STACK
-	DEPTH 0<
-	IF
-	  SP! 6 ERROR
-	THEN
-	DEPTH MAX_DEPTH @ >
-	7 ?ERROR		;
+: ?stack
+   depth 0<
+   if
+     sp! 6 error
+   then
+   depth max_depth @ >
+   7 ?error      ;
 
-X: ?PAIRS
-	- 3 ?ERROR	;
+x: ?pairs
+   - 3 ?error   ;
 
-X: ?LOADING
-	BLK @ 0= five ?ERROR	;
+x: ?loading
+   blk @ 0= five ?error   ;
  

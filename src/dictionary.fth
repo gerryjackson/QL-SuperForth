@@ -1,217 +1,217 @@
-( FORTH 83 Cross compiler -  Dictionary handling words )
+( Forth 83 Cross Compiler -  dictionary handling words )
 
-( Last modified:	21 October 1986 )
+( Last modified:   21 October 1986 )
 
-XVARIABLE U/LCASE  bl here 2- !
+xvariable u/lcase  bl here 2- !
 
-: UPPER	  0 U/LCASE ! ;			( Upper case only )
+: upper     0 u/lcase ! ;         ( upper case only )
 
-: LOWER	 BL U/LCASE ! ;			( Lower case also )
+: lower    bl u/lcase ! ;         ( lower case also )
 
-: WORD
-	DUP BL = DUP
-	IF 
-	  DROP BL
-	THEN
-	TIB #TIB @ BLK @
-	IF 
-	  2DROP BLK @ BLOCK B/BUF
-	THEN
-	OVER >R OVER + SWAP
-	>IN @ +
-	(WORD)
-	R> - >IN !
-	HERE 2+ 2DUP C!
-	1+ 2DUP + BL SWAP C!
-	SWAP CMOVE
-	HERE 2+			;
+: word
+   dup bl = dup
+   if 
+     drop bl
+   then
+   tib #tib @ blk @
+   if 
+     2drop blk @ block b/buf
+   then
+   over >r over + swap
+   >in @ +
+   (word)
+   r> - >in !
+   here 2+ 2dup c!
+   1+ 2dup + bl swap c!
+   swap cmove
+   here 2+         ;
 
-: ALLOT DP +!	;
+: allot dp +!   ;
  
-X: DP_EVEN
-	0 HERE C!
-	HERE 1 AND ALLOT	;
+x: dp_even
+   0 here c!
+   here 1 and allot   ;
 
-: ,	HERE 2 ALLOT !	;
+: ,   here 2 allot !   ;
 
-: COMPILE
-	?COMP
-	(COMPILE) ,	;
+: compile
+   ?comp
+   (compile) ,   ;
  
-: RP!	COMPILE (RP!)	;
+: rp!   compile (rp!)   ;
 
-X: COMPILE_CFA
-	-2 ALLOT (COMPILE) ,	;
+x: compile_cfa
+   -2 allot (compile) ,   ;
 
-: LATEST
-	CURRENT @ @ ;
+: latest
+   current @ @ ;
 
-: ID.	2+
-	BEGIN
-	  1+ DUP C@ 127
-	  2DUP AND EMIT >
-	UNTIL
-	DROP	;
+: id.   2+
+   begin
+     1+ dup c@ 127
+     2dup and emit >
+   until
+   drop   ;
 
-X: NOT_NIL
-	DUP NIL <> ;
+x: not_nil
+   dup nil <> ;
 
 : seek
-	u/lcase @
-	if word_to_upper then
-	not_nil
-	if (seek) then		;
-	
+   u/lcase @
+   if word_to_upper then
+   not_nil
+   if (seek) then      ;
+   
  
-X: CONTEXT_SEEK			( Searches all context vocabularies )
-	DUP U/LCASE @
-	IF WORD_TO_UPPER THEN
-	ten 0 DO
-		DROP CONTEXT I + @
-		NOT_NIL
-		IF
-		  @ (SEEK) NOT_NIL
-		  IF LEAVE THEN
-		THEN
-	   2 +LOOP	;
+x: context_seek         ( searches all context vocabularies )
+   dup u/lcase @
+   if word_to_upper then
+   ten 0 do
+      drop context i + @
+      not_nil
+      if
+        @ (seek) not_nil
+        if leave then
+      then
+      2 +loop   ;
 
-: LITERAL
-	STATE @
-	IF
-	  (LITERAL) (LITERAL) , ,
-	THEN		;	IMMEDIATE
+: literal
+   state @
+   if
+     (literal) (literal) , ,
+   then      ;   immediate
 
-: C,	HERE 1 ALLOT C!	;
+: c,   here 1 allot c!   ;
 
-: '	BL WORD CONTEXT_SEEK
-	NIL =
-	IF DROP eight ERROR THEN	;
+: '   bl word context_seek
+   nil =
+   if drop eight error then   ;
 
-X: SNIP
-	DUP
-	BEGIN
-	  @ R> R> R@
-	  ROT ROT >R >R OVER >
-	UNTIL
-	OVER ! @	;
+x: snip
+   dup
+   begin
+     @ r> r> r@
+     rot rot >r >r over >
+   until
+   over ! @   ;
 
 forth_address {vocabulary}
 
-] jump_to_does context ! exit [		-- Run time code for vocabulary
+] jump_to_does context ! exit [     -- run time code for vocabulary
 
-VOCABULARY FORTH
-	[ here 6 - target_address       -- Save parameter field address
-	  (forth) !			-- of FORTH
+vocabulary forth
+   [ here 6 - target_address        -- save parameter field address
+     (forth) !                      -- of forth
 
-: RECURSE
-	?COMP LATEST LINK> ,	;
+: recurse
+   ?comp latest link> ,   ;
 
-: FIND	CONTEXT_SEEK NOT_NIL
-	IF
-	  2+ C@ 64 AND
-	  0= 2* 1+ EXIT
-	THEN
-	DROP 0		;
+: find   context_seek not_nil
+   if
+     2+ c@ 64 and
+     0= 2* 1+ exit
+   then
+   drop 0      ;
 
 
-: >LINK	>NAME 2-	;
+: >link   >name 2-   ;
 
-: >body			-- Compilation address to parameter field
-	2+	;
+: >body           -- compilation address to parameter field
+   2+   ;
 
-: body>			-- Parameter field to compilation address
-	2-	;
+: body>           -- parameter field to compilation address
+   2-   ;
 
-: name>			-- Name field to compilation address
-	2- link> ;
+: name>           -- name field to compilation address
+   2- link> ;
 
-: n>link		-- Name field to link field
-	2-	;
+: n>link          -- name field to link field
+   2-   ;
 
-: l>name		-- Link field to name field )
-	2+	;
+: l>name          -- link field to name field )
+   2+   ;
 
 x: (;code)
-	[ here 2- load_{(;code)} ]
-	{;CODE},  LATEST LINK> !	;
+   [ here 2- load_{(;code)} ]
+   {;code},  latest link> !   ;
 
 
-VOCABULARY ONLY
-	here 6 - target_address		-- Save parameter field address
-	(only) !			-- of ONLY
-	here target_address here 8 - !	-- Point ONLY code pointer HERE
-	] jump_to_does			-- the DOES> code for ONLY
-	eight 0 DO
-	      NIL I CONTEXT + !		-- Clears top 8 words of context
-	  2 +LOOP
-	dup context !
-	CONTEXT eight + !
-	exit   [
+vocabulary only
+   here 6 - target_address          -- save parameter field address
+   (only) !                         -- of only
+   here target_address here 8 - !   -- point only code pointer here
+   ] jump_to_does                   -- the does> code for only
+   eight 0 do
+         nil i context + !          -- clears top 8 words of context
+     2 +loop
+   dup context !
+   context eight + !
+   exit   [
 
-: DEFINITIONS
-	CONTEXT @ CURRENT !	;
+: definitions
+   context @ current !   ;
 
-: ALSO	CONTEXT DUP 2+
-	6 CMOVE>	;
+: also   context dup 2+
+   6 cmove>   ;
 
-: previous		-- Removes top context vocabulary from search order
-	context dup 2+ swap
-	6 cmove          	-- Slide next 3 vocabularies up 2 bytes
-	nil context 6 + !  ;	-- Ensure last is empty
+: previous                 -- removes top context vocabulary from search order
+   context dup 2+ swap
+   6 cmove                 -- slide next 3 vocabularies up 2 bytes
+   nil context 6 + !  ;    -- ensure last is empty
 
-: ORDER	CR 26 MESSAGE
-	CONTEXT ten OVER + SWAP
-	DO
-	  I @ NOT_NIL
-	  IF
-	    DUP 2- >LINK ID. SPACE
-	  then
-	  DROP 2
-	+LOOP
-	CR 27 MESSAGE
-	CURRENT @ 2-
-	>LINK ID.	;
+: order   cr 26 message
+   context ten over + swap
+   do
+     i @ not_nil
+     if
+       dup 2- >link id. space
+     then
+     drop 2
+   +loop
+   cr 27 message
+   current @ 2-
+   >link id.   ;
 
-: SEAL	[ (only) @ ] LITERAL
-	ten 0
-	DO
-	  CONTEXT I + @ OVER =
-	  IF
-	    NIL CONTEXT I + !
-	  THEN
-	  2
-	+LOOP
-	DROP		;
+: seal   [ (only) @ ] literal
+   ten 0
+   do
+     context i + @ over =
+     if
+       nil context i + !
+     then
+     2
+   +loop
+   drop      ;
 
-: WORDS
-	CR CONTEXT @ @
-	BEGIN
-	  eight 0
-	  DO
-	    NOT_NIL 0=
-	    IF LEAVE THEN
- 	    DUP ID. 2 SPACES @
-	  LOOP
-	  CR NOT_NIL 0=
-	UNTIL
-	DROP	 ;
+: words
+   cr context @ @
+   begin
+     eight 0
+     do
+       not_nil 0=
+       if leave then
+        dup id. 2 spaces @
+     loop
+     cr not_nil 0=
+   until
+   drop    ;
 
 : immediate 
-	latest 2+ dup c@
-	64 or swap c!	;
+   latest 2+ dup c@
+   64 or swap c!   ;
 
 : [compile]
-	?comp '
-	?found ,	;	immediate
+   ?comp '
+   ?found ,   ;   immediate
 
 : [']
-	?comp '
-	[compile] literal  ;	immediate
+   ?comp '
+   [compile] literal  ;   immediate
 
 : blank
-	bl fill		;
+   bl fill      ;
 
 : erase
-	0 fill		;
+   0 fill      ;
 
 

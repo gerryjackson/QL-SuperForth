@@ -1,175 +1,175 @@
---		FORTH 83 Cross compiler -   File and block handling
+-- FORTH 83 Cross compiler -   File and block handling
 
---		Last modified:	21 October 1986
+-- Last modified:   21 October 1986
 
 forth_address {2constant}
-] jump_to_does 2@ exit [		-- Run time code for 2CONSTANTs
+] jump_to_does 2@ exit [      -- run time code for 2constants
 
--1 -1 2CONSTANT #DEFAULT
-here 4 - default_id !		-- Save address for patching at end
+-1 -1 2constant #default
+here 4 - default_id !      -- save address for patching at end
 
-BUF_SIZE CONSTANT B/BUF
+buf_size constant b/buf
 
-64 CONSTANT C/L
+64 constant c/l
 
-16 CONSTANT L/B
+16 constant l/b
 
-XVARIABLE MESS_FLAG	-1 here 2- !
+xvariable mess_flag   -1 here 2- !
 
-VARIABLE DRIVE	1 here 2- !
+variable drive   1 here 2- !
 
-VARIABLE #FILE				-- Really a 2VARIABLE
+variable #file            -- really a 2variable
 -1 here 2- ! -1 ,
 
-X: bkbuf
-	buf_ad @	;
+x: bkbuf
+   buf_ad @   ;
 
-X: MARK_BLOCK_VALID
-	1 BKBUF C!
-	BKBUF 2+	;
+x: mark_block_valid
+   1 bkbuf c!
+   bkbuf 2+   ;
 
 xvariable device
-	8 here 2- !			-- The string length
-	102 c, 108 c, 112 c, 49 c,	-- flp1
-	 95 c,  66 c,  76 c, 75 c,	-- _BLK
+   8 here 2- !                   -- the string length
+   102 c, 108 c, 112 c, 49 c,    -- flp1
+    95 c,  66 c,  76 c, 75 c,    -- _blk
 
-X: SET_DRIVE
-	device 2+  2! DRIVE !	;
+x: set_drive
+   device 2+  2! drive !   ;
 
-X: HERE+64
-	HERE 64 +
-	1+ -2 AND	;
+x: here+64
+   here 64 +
+   1+ -2 and   ;
 
-X: SAVE_DRIVE
-	48 +
-	HERE+64
-	five + C!		;
+x: save_drive
+   48 +
+   here+64
+   five + c!      ;
 
-X: GENERATE_NAME
-	DEVICE				( DEVICE is a string 'flp1_BLK' )
-	HERE+64 ten CMOVE
-	DRIVE @ SAVE_DRIVE
-	BASE @ DECIMAL
-	BKBUF 2- @ 0
-	<# #S #>
-	DUP HERE+64 +!
-	HERE+64 ten +
-	SWAP CMOVE
-	BASE !		;
+x: generate_name
+   device            ( device is a string 'flp1_blk' )
+   here+64 ten cmove
+   drive @ save_drive
+   base @ decimal
+   bkbuf 2- @ 0
+   <# #s #>
+   dup here+64 +!
+   here+64 ten +
+   swap cmove
+   base !      ;
 
-X: ABSOLUTE_PAD
-	nil 2@ HERE+64
-	nil - 0 D+	;
+x: absolute_pad
+   nil 2@ here+64
+   nil - 0 d+   ;
 
-X: CALL_?ERROR
-	DUP ?ERROR	;
+x: call_?error
+   dup ?error   ;
  
-X: (DEL)
-	ABSOLUTE_PAD 0 four TRAP2	;
+x: (del)
+   absolute_pad 0 four trap2   ;
 
-X: (DELETE)
-	(DEL) DUP -7 <>
-	IF CALL_?ERROR 0 THEN
-	3DROP		;
+x: (delete)
+   (del) dup -7 <>
+   if call_?error 0 then
+   3drop      ;
 
-X: (OPEN)
-	ABSOLUTE_PAD
-	ROT 1 TRAP2	;
+x: (open)
+   absolute_pad
+   rot 1 trap2   ;
 
-X: (CLOSE)
-	0 2 TRAP2	;
+x: (close)
+   0 2 trap2   ;
 
-: CLOSE
-	(CLOSE) CALL_?ERROR 2DROP	;
+: close
+   (close) call_?error 2drop   ;
 
-X: READ_WRITE
-	BKBUF 2+ SWAP
-	2OVER B/BUF
-	TRAP3 >R 2DROP
-	CLOSE R> CALL_?ERROR	;
+x: read_write
+   bkbuf 2+ swap
+   2over b/buf
+   trap3 >r 2drop
+   close r> call_?error   ;
 
-X: WRITE_BLOCK
-	GENERATE_NAME
-	(DELETE)
-	2 (OPEN) CALL_?ERROR
-	73 READ_WRITE	;
+x: write_block
+   generate_name
+   (delete)
+   2 (open) call_?error
+   73 read_write   ;
 
-X: READ_BLOCK
-	GENERATE_NAME
-	0 (OPEN) DUP -7 =
-	IF
-	  DEVICE 2+ @
-	  [ HEX 4D44 DECIMAL ] LITERAL
-	  =
-	  IF
-	    3DROP 3
-	    DRIVE @ - SAVE_DRIVE
-	    0 (OPEN)
-	  THEN
-	THEN
-	CALL_?ERROR
-	72 READ_WRITE	;
+x: read_block
+   generate_name
+   0 (open) dup -7 =
+   if
+     device 2+ @
+     [ hex 4d44 decimal ] literal
+     =
+     if
+       3drop 3
+       drive @ - save_drive
+       0 (open)
+     then
+   then
+   call_?error
+   72 read_write   ;
 
-: EMPTY-BUFFERS
-	0 BKBUF C!	;
+: empty-buffers
+   0 bkbuf c!   ;
 
-: SAVE-BUFFERS
-	BKBUF C@ 2 =
-	IF WRITE_BLOCK THEN
-	1 BKBUF C!	;
+: save-buffers
+   bkbuf c@ 2 =
+   if write_block then
+   1 bkbuf c!   ;
 
-X: BUF	SAVE-BUFFERS
-	EMPTY-BUFFERS
-	BKBUF 2- !
-	BKBUF 2+	;
+x: buf   save-buffers
+   empty-buffers
+   bkbuf 2- !
+   bkbuf 2+   ;
 
-: BUFFER
-	BUF B/BUF BL FILL 
-	MARK_BLOCK_VALID
-	0 OVER B/BUF + !	;
+: buffer
+   buf b/buf bl fill 
+   mark_block_valid
+   0 over b/buf + !   ;
 
-X: MESS13
-	-1 MESS_FLAG !	;
+x: mess13
+   -1 mess_flag !   ;
 
-X: MESSAGE13
-	MESS_FLAG @ MESS13
-	IF
-	  CR 13 MESSAGE DUP DEC.
-	THEN		;
+x: message13
+   mess_flag @ mess13
+   if
+     cr 13 message dup dec.
+   then      ;
 
-: BLOCK
-	BKBUF C@
-	IF
-	  BKBUF 2- @ OVER =
-	  IF DROP BKBUF 2+ EXIT THEN
-	THEN
-	MESSAGE13
-	BUF DROP READ_BLOCK
-	MARK_BLOCK_VALID	;
+: block
+   bkbuf c@
+   if
+     bkbuf 2- @ over =
+     if drop bkbuf 2+ exit then
+   then
+   message13
+   buf drop read_block
+   mark_block_valid   ;
 
-: UPDATE
-	2 BKBUF C!	;
+: update
+   2 bkbuf c!   ;
 
-: LIST
-	0 MESS_FLAG !
-	DUP BLOCK MESS13 SWAP
-	DUP SCR !
-	CR CLS 11 MESSAGE
-	. CR L/B 0
-	DO
-	  DUP C/L
-	  -TRAILING CR TYPE
-	  C/L +
-	LOOP
-	CR DROP		;
+: list
+   0 mess_flag !
+   dup block mess13 swap
+   dup scr !
+   cr cls 11 message
+   . cr l/b 0
+   do
+     dup c/l
+     -trailing cr type
+     c/l +
+   loop
+   cr drop      ;
 
-X: MOVE_HERE+64
-	0 HERE+64 !
-	HERE+64 1+ OVER
-	C@ 1+ CMOVE>	;
+x: move_here+64
+   0 here+64 !
+   here+64 1+ over
+   c@ 1+ cmove>   ;
  
 : flush
-	save-buffers empty-buffers	;
+   save-buffers empty-buffers   ;
 
--- More file handling at end of X_inter_fth
+-- more file handling at end of interpreter.fth
 

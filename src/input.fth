@@ -1,70 +1,69 @@
---		FORTH 83 Cross compiler -  Input words
+-- FORTH 83 Cross compiler -  Input words
 
---		Last modified:	19 October 1986 )
+-- Last modified:   19 October 1986 )
 
-XVARIABLE KEY_INPUT		-- True for keyboard input
--1 here 2- !			-- Preset to true
+xvariable key_input  -- true for keyboard input
+-1 here 2- !         -- preset to true
 
-: tib	(tib) @		;
+: tib   (tib) @      ;
 
-X: MOVE_CURSOR
-	nil SWAP #IN 2@ 0 TRAP3		-- nil is convenient and irrelevant
-	3DROP		;
+x: move_cursor
+   nil swap #in 2@ 0 trap3    -- nil is convenient and irrelevant
+   3drop      ;
  
-: EXPECT
-	DUP 0>
-	IF
-	  >R 2 #IN 2@ R> TRAP3
-	  DUP -5 <>
-	  IF
-	    DUP ?ERROR 1- 0
-	  THEN
-	  DROP
-	ELSE
-	  DROP 0
-	THEN
-	SPAN ! DROP
-	KEY_INPUT @
-	IF
-	  19 MOVE_CURSOR
-	  20 MOVE_CURSOR SPACE
-	THEN		;
+: expect
+   dup 0>
+   if
+     >r 2 #in 2@ r> trap3
+     dup -5 <>
+     if
+       dup ?error 1- 0
+     then
+     drop
+   else
+     drop 0
+   then
+   span ! drop
+   key_input @
+   if
+     19 move_cursor
+     20 move_cursor space
+   then      ;
  
-: QUERY
-	TIB TIB_LENGTH EXPECT
-	0 >IN !
-	0 BLK !
-	SPAN @ #TIB !	;
+: query
+   tib tib_length expect
+   0 >in !
+   0 blk !
+   span @ #tib !   ;
  
-: CONVERT
-	BEGIN
-	  1+ DUP >R C@ BASE @ DIGIT
-	WHILE
-	  SWAP BASE @ UM* DROP
-	  ROT BASE @ UM* D+ DPL @ 1+
-	  IF 1 DPL +! THEN
-	  R>
-	REPEAT
-	R>		;
+: convert
+   begin
+     1+ dup >r c@ base @ digit
+   while
+     swap base @ um* drop
+     rot base @ um* d+ dpl @ 1+
+     if 1 dpl +! then
+     r>
+   repeat
+   r>      ;
 
-: NUMBER
-	0 0 ROT
-	DUP 1+ C@ 45 =
-	DUP >R - -1
-	BEGIN
-	  DPL ! CONVERT DUP C@ BL >
-	WHILE
-	  1 DPL @ 0<
-	  IF DROP DUP C@ 46 - THEN
-	  IF 3DROP 0 ERROR THEN
-	  0
-	REPEAT
-	DROP R>
-	IF DNEGATE THEN		;
+: number
+   0 0 rot
+   dup 1+ c@ 45 =
+   dup >r - -1
+   begin
+     dpl ! convert dup c@ bl >
+   while
+     1 dpl @ 0<
+     if drop dup c@ 46 - then
+     if 3drop 0 error then
+     0
+   repeat
+   drop r>
+   if dnegate then      ;
 
 : key
-	tib 1 #in 2@ 1 trap3
-	dup ?error swap drop
-	255 and		;
-
+   tib 1 #in 2@ 1 trap3
+   dup ?error swap drop
+   255 and      ;
 

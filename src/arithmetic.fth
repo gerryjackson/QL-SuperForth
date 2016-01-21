@@ -1,33 +1,33 @@
-( FORTH 83 Cross compiler -  Maths definitions )
+( FORTH 83 Cross compiler -  Arithmetic definitions )
 
-( Last modified:	19 October 1986 )
+( Last modified:  19 October 1986 )
 
-: MOD	/MOD DROP	;
+: mod /mod drop   ;
 
-: /	/MOD SWAP DROP	;
+: /   /mod swap drop ;
  
-: */	*/MOD SWAP DROP	;
+: */  */mod swap drop   ;
 
-: DABS	DUP 0<
-	IF DNEGATE THEN	;
+: dabs   dup 0<
+   if dnegate then   ;
 
 : 2rot
-	>r >r 2swap
-	r> r> 2swap	;
+   >r >r 2swap
+   r> r> 2swap ;
 
 : d=
-	d- d0=		;
+   d- d0=      ;
 
 x: 2discard
-	if 2swap then
-	2drop		;
+   if 2swap then
+   2drop    ;
 
 : dmin
-	2over 2over d< not
-	2discard	;
+   2over 2over d< not
+   2discard ;
 
 : dmax
-	2over 2over d<
-	2discard	;
+   2over 2over d<
+   2discard ;
 
 

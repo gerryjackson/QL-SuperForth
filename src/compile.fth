@@ -17,7 +17,7 @@ only forth definitions
 variable finished 0 finished !      -- Boolean, indicates cross
                                     -- compilation is complete
 
-: X_error
+: x_error
    only forth definitions
    >r                            -- Save error number
    assign error to-do drop
@@ -26,7 +26,7 @@ variable finished 0 finished !      -- Boolean, indicates cross
    sp! r>                        -- Restore error number
    (error)      ;
 
-assign error to-do X_error
+assign error to-do x_error
 
 
 -- Some definitions to include other files
@@ -63,18 +63,18 @@ target_name read" forth_image"
 
 cr cr .( Loading host.fth)     include host.fth
 cr cr .( Loading primitives)   target_include primitives.obj
-cr cr .( Loading decl.fth)     cross_compile  decl.fth
+cr cr .( Loading decl.fth)     cross_compile  declarations.fth
 cr cr .( Loading errors.fth)   cross_compile  errors.fth
-cr cr .( Loading maths.fth)    cross_compile  maths.fth
+cr cr .( Loading maths.fth)    cross_compile  arithmetic.fth
 cr cr .( Loading output.fth)   cross_compile  output.fth
 cr cr .( Loading input.fth)    cross_compile  input.fth
 cr cr .( Loading files.fth)    cross_compile  files.fth
-cr cr .( Loading dict.fth)     cross_compile  dict.fth
+cr cr .( Loading dict.fth)     cross_compile  dictionary.fth
 cr cr .( Loading definers.fth) cross_compile  definers.fth
-cr cr .( Loading inter.fth)    cross_compile  inter.fth
+cr cr .( Loading inter.fth)    cross_compile  interpreter.fth
 cr cr .( Loading control.fth)  cross_compile  control.fth
 cr cr .( Loading strings.fth)  cross_compile  strings.fth
-cr cr .( Loading QDOS.fth)     cross_compile  QDOS.fth
+cr cr .( Loading qdos.fth)     cross_compile  qdos.fth
 cr cr .( Loading tasking.fth)  cross_compile  tasking.fth
 
 include finish.fth

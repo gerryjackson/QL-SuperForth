@@ -1,99 +1,99 @@
--- 	FORTH 83 Cross compiler -  Defining words
+-- FORTH 83 Cross compiler -  Defining words
 
---	Last modified:		21 October 1986
+-- Last modified:      21 October 1986
 
-X: CSP!	SP@ CSP !	;
+x: csp!   sp@ csp !   ;
 
-: SMUDGE
-	LATEST 2+ C@ 32 XOR
-	LATEST 2+ C!		;
+: smudge
+   latest 2+ c@ 32 xor
+   latest 2+ c!      ;
 
-: CREATE
-	DP_EVEN bl word
-	CONTEXT_SEEK NOT_NIL
-	IF
-	  CR ten MESSAGE
-	  DUP ID.
-	THEN
-	2DROP HERE LATEST ,
-	CURRENT @ !
-	HERE C@ 31 MIN DUP 128 OR
-	HERE C! ALLOT
-	HERE C@ 128 OR C, DP_EVEN
-	(VARIABLE) ,		;
+: create
+   dp_even bl word
+   context_seek not_nil
+   if
+     cr ten message
+     dup id.
+   then
+   2drop here latest ,
+   current @ !
+   here c@ 31 min dup 128 or
+   here c! allot
+   here c@ 128 or c, dp_even
+   (variable) ,      ;
 
-: DOES>
-	COMPILE (;CODE)
-	(jump_to_does)
-	literal , literal ,	;	immediate
+: does>
+   compile (;code)
+   (jump_to_does)
+   literal , literal ,   ;   immediate
 
-: [	0 STATE !	;	IMMEDIATE
+: [   0 state !   ;   immediate
 
-: ]	-1 STATE !	;
+: ]   -1 state !   ;
 
-: :	?EXEC CSP!
-	CURRENT @ CONTEXT !
-	CREATE SMUDGE
-	COMPILE_CFA (:)
-	]		;
+: :   ?exec csp!
+   current @ context !
+   create smudge
+   compile_cfa (:)
+   ]      ;
  
-: ;	?CSP COMPILE (;)
-	SMUDGE [compile] [	;	immediate
+: ;   ?csp compile (;)
+   smudge [compile] [   ;   immediate
 
-: CONSTANT
-	CREATE COMPILE_CFA (CONSTANT)
-	,		;
+: constant
+   create compile_cfa (constant)
+   ,      ;
 
-: 2CONSTANT
-	CREATE
-	  , ,
-	DOES>
-	  2@	;
+: 2constant
+   create
+     , ,
+   does>
+     2@   ;
 
-: VARIABLE
-	CREATE 0 ,	;
+: variable
+   create 0 ,   ;
 
 : 2variable
-	variable 0 ,	;
+   variable 0 ,   ;
 
-X: LINK_IN
-	, DUP @ HERE
-	ROT ! ,		;
+x: link_in
+   , dup @ here
+   rot ! ,      ;
 
-: VOCABULARY
-	CREATE
-	  NIL ,
-	  VOC_LINK
-	  [ HEX 81A0 DECIMAL ] LITERAL
-	  LINK_IN
-	DOES>
-	  CONTEXT ! ;
+: vocabulary
+   create
+     nil ,
+     voc_link
+     [ hex 81a0 decimal ] literal
+     link_in
+   does>
+     context ! ;
 
-X: XQ_ERROR
-	[ here 2- load_{xq_error} ]
-	14 ERROR	;
+x: xq_error
+   [ here 2- load_{xq_error} ]
+   14 error   ;
 
-: EXVEC:
-	?EXEC
-	CREATE
-	  XQ_LINK [host'] xq_error
-	  LINK_IN
-	DOES>
-	  @ EXECUTE	;
+: exvec:
+   ?exec
+   create
+     xq_link [host'] xq_error
+     link_in
+   does>
+     @ execute   ;
 
 : assign
-	' ?found 2+	;	immediate
+   ' ?found 2+   ;   immediate
 
 : to-do
-	' ?found state @
+   ' ?found state @
         if
-	  [compile] literal
-	  [compile] literal
-	  compile !
+     [compile] literal
+     [compile] literal
+     compile !
         else
-	  swap !
-	then		;	immediate
+     swap !
+   then      ;   immediate
 
-: forth-83 [compile] forth	;
+: forth-83 [compile] forth   ;
 
 

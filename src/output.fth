@@ -1,127 +1,127 @@
 ( FORTH 83 Cross compiler -  Output words )
 
-( Last modified:	9 November 1986 )
+( Last modified:   9 November 1986 )
 
-: pad	(pad) @		;
+: pad   (pad) @      ;
 
-: HERE	DP @	;
+: here   dp @   ;
  
-: COUNT
-	DUP 1+ SWAP C@	;
+: count
+   dup 1+ swap c@   ;
  
-: TYPE
-	DUP 0>
-	IF
-	  >R
-	  7 #OUT 2@ R> TRAP3
-	  DUP ?ERROR
-	THEN
-	2DROP		;
+: type
+   dup 0>
+   if
+     >r
+     7 #out 2@ r> trap3
+     dup ?error
+   then
+   2drop      ;
 
-: message			-- Version with messages outside dictionary
-	#out 2@ rot             -- ( n1 --- ID n1 )
-	.message		-- (   --- n2 )
-	dup ?error	;
-	
+: message            -- version with messages outside dictionary
+   #out 2@ rot       -- ( n1 --- id n1 )
+   .message          -- (   --- n2 )
+   dup ?error   ;
+   
 
--- : message			-- Version with internal messages
---	2* message_vecs + @	-- Read address of desired message
---	count type	;
+-- : message               -- version with internal messages
+--   2* message_vecs + @   -- read address of desired message
+--   count type   ;
 
-: EMIT	EMIT_VAR C! EMIT_VAR 1 TYPE ;
+: emit   emit_var c! emit_var 1 type ;
 
-: CR	ten EMIT	;
+: cr   ten emit   ;
 
-: SPACE	BL EMIT		;
+: space   bl emit      ;
  
-: SPACES
-	BEGIN
-	  DUP 0>
-	WHILE
-	  SPACE 1-
-	REPEAT
-	DROP	;
+: spaces
+   begin
+     dup 0>
+   while
+     space 1-
+   repeat
+   drop   ;
 
-: HOLD	-1 HLD +! HLD @ C!	;
+: hold   -1 hld +! hld @ c!   ;
 
-X: PRINT_NUM
-	OVER - SPACES
-	TYPE		; 
+x: print_num
+   over - spaces
+   type      ; 
 
-X: HOLD_ASCII
-	DUP 9 >
-	IF 7 + THEN
-	48 + HOLD	;
+x: hold_ascii
+   dup 9 >
+   if 7 + then
+   48 + hold   ;
  
-X: PAD_TOP
-	PAD 84 +	;
+x: pad_top
+   pad 84 +   ;
 
-: <#	PAD_TOP HLD !	;
+: <#   pad_top hld !   ;
 
-: #>	2DROP HLD @
-	PAD_TOP OVER -	;
+: #>   2drop hld @
+   pad_top over -   ;
 
-: SIGN	0<
-	IF 45 HOLD then	;
+: sign   0<
+   if 45 hold then   ;
 
-: #	BASE @ M/MOD
-	ROT HOLD_ASCII	;
+: #   base @ m/mod
+   rot hold_ascii   ;
 
-: #S	BEGIN
-	  # 2DUP D0=
-	UNTIL		;
+: #s   begin
+     # 2dup d0=
+   until      ;
 
-: D.R	>R SWAP OVER DABS
-	<# #S ROT SIGN
-	#> R> PRINT_NUM	;
+: d.r   >r swap over dabs
+   <# #s rot sign
+   #> r> print_num   ;
 
-: D.	0 D.R SPACE	;
+: d.   0 d.r space   ;
  
-: U.	0 D.	;
+: u.   0 d.   ;
 
-: .R	>R DUP ABS 0 <#
-	BEGIN
-	  BASE @ UM/MOD
-	  SWAP HOLD_ASCII 0
-	  OVER 0=
-	UNTIL
-	ROT SIGN
-	#> R> PRINT_NUM	;
+: .r   >r dup abs 0 <#
+   begin
+     base @ um/mod
+     swap hold_ascii 0
+     over 0=
+   until
+   rot sign
+   #> r> print_num   ;
 
-: .	0 .R SPACE	;
+: .   0 .r space   ;
  
-: ?	@ .	;
+: ?   @ .   ;
 
 : u.r
-	0 swap d.r	;
+   0 swap d.r   ;
 
-: DECIMAL
-	ten BASE ! ;
+: decimal
+   ten base ! ;
 
-: HEX	16 BASE ! ;
+: hex   16 base ! ;
 
-: H.	BASE @ SWAP
-	HEX U.
-	BASE !		;
+: h.   base @ swap
+   hex u.
+   base !      ;
  
-X: DEC.
-	BASE @ DECIMAL
-	SWAP U.
-	BASE !		;
+x: dec.
+   base @ decimal
+   swap u.
+   base !      ;
 
-: -TRAILING
-	DUP 0>
-	IF
-	  BEGIN
-	    1- 2DUP + C@ BL -
-	    OVER 0< OR
-	  UNTIL
-	  1+
-	THEN	;
+: -trailing
+   dup 0>
+   if
+     begin
+       1- 2dup + c@ bl -
+       over 0< or
+     until
+     1+
+   then   ;
 
-: (CLS)
-	1 BL #OUT 2@ 1 TRAP3
-	DUP ?ERROR 2DROP	;
+: (cls)
+   1 bl #out 2@ 1 trap3
+   dup ?error 2drop   ;
 
-EXVEC: CLS   ASSIGN CLS TO-DO (CLS)
+exvec: cls   assign cls to-do (cls)
 
