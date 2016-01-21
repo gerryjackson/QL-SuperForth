@@ -1,0 +1,190 @@
+( FORTH 83 Cross compiler -   String handling )
+
+(	Last modified:	21 October 1986 )
+
+X: CHECK_SIZE
+	DUP 255 U>
+	IF 24 ERROR THEN   ;
+
+: STRING
+	CHECK_SIZE
+	CREATE
+	  DUP C, 0 C,
+	  ALLOT DP_EVEN
+	DOES>
+	  1+		;
+
+: INPUT
+	DUP 1+ DUP 2-
+	C@ EXPECT SPAN @
+	SWAP C!		;
+
+X: MOVE_IT
+	DUP 1+ OVER C@ 1+
+	DUP 1+ ALLOT
+	CMOVE> DP_EVEN	;
+
+: READ"
+	$" WORD STATE @
+	IF
+	  COMPILE (READ")
+	  MOVE_IT EXIT
+	THEN
+	2DUP C@ SWAP 1- C@ >
+	IF 23 ERROR THEN
+	SWAP OVER C@ 1+ CMOVE	;	immediate
+
+: LENGTH C@	;		 -- Put this into code file
+
+: MAX_LEN
+	1- C@	;
+
+: STR_ARRAY
+	CHECK_SIZE
+	CREATE
+	  SWAP DUP , 0
+	  DO
+	    DUP C, 0 C,
+	    DUP ALLOT DP_EVEN
+	  LOOP
+	  DROP
+	DOES>
+	  2DUP @ U< 0=
+	  IF 25 ERROR THEN
+	  2+ SWAP OVER C@
+	  2+ 1+ -2 AND
+	  * + 1+	;
+
+: CLEAR
+	0 SWAP C!	;
+
+: INS/DEL
+	ROT >R SWAP 1 MAX
+	R@ 1- C@ MIN
+	1- SWAP DUP 0<
+	IF
+	  NEGATE OVER 1+ R@ +
+	  2DUP + SWAP OVER
+	  R@ - R@ C@ 1+
+	  SWAP - 0 MAX CMOVE
+	  R@ C@ SWAP - MAX
+	  R@ C@ MIN R> C!
+	  EXIT
+	THEN
+	  2DUP + OVER R@ C@ +
+	  R@ 1- C@ MIN
+	  DUP R@ C! SWAP -
+	  R> SWAP >R
+	  ROT 1+ + SWAP OVER +
+	  R> 0 MAX CMOVE>	;
+
+X: CHECK_PARS
+	DUP 0<
+	>R OVER 0= >R
+	OVER 3 PICK C@ 1+ U>
+	R> OR R> OR
+	IF 25 ERROR THEN
+	 2 PICK 	;
+
+X: MAKE_SPACE
+	CHECK_PARS 2DUP
+	C@ + SWAP 1- C@ >
+	IF 23 ERROR THEN
+	INS/DEL ;
+
+X: CHECK_PARS2
+	2DUP + >R
+	CHECK_PARS C@ 1+ R> <
+	IF 25 ERROR THEN	;
+
+: LOSE
+	CHECK_PARS2
+	NEGATE INS/DEL	;
+
+X: (INSERT)
+	>r OVER MAX_LEN OVER - 1+
+	R> MIN >R
+	+ SWAP 1+ SWAP R>
+	CMOVE>	;
+
+: INSERT
+	2DUP four PICK
+	C@ DUP >R MAKE_SPACE r>
+        (INSERT)	;
+	
+: INS_CHAR
+	2DUP 1 MAKE_SPACE
+	OVER MAX_LEN OVER <
+	IF 3DROP EXIT THEN
+	+ C! ;
+
+: APP_CHAR
+	DUP C@ 1+ INS_CHAR	;
+
+: APPEND
+	DUP C@ 1+ INSERT	;
+
+: SLICE
+	2DUP 1- C@ >
+	IF 23 ERROR THEN
+	>R CHECK_PARS2 >R + R>
+	R@ 1- C@ MIN
+	R> 2DUP C!
+	1+ SWAP CMOVE	;
+
+: TAKE	>R
+	2 PICK 2 PICK 2 PICK
+	R> SLICE LOSE	;
+
+X: CHECK_POS
+	OVER MAX_LEN OVER < >R
+	OVER C@ OVER U<
+	OVER 0= OR R> OR	;
+
+: CHAR	CHECK_POS
+	IF 25 ERROR THEN
+	+ C@		;
+
+: TAKE_CHAR
+	2DUP CHAR
+	>R 1 LOSE R>	;
+
+: REPLACE
+	DUP 0> 0= >R
+	OVER C@ OVER - 1+
+	3 PICK C@ <
+	R> OR
+	IF 25 ERROR THEN
+	2 PICK C@
+	(INSERT)	;
+
+: REPL_CHAR
+	CHECK_POS
+	IF 25 ERROR 3DROP EXIT THEN
+	+ c!	;
+
+: UNUSED
+	DUP MAX_LEN
+	SWAP C@ -
+	0 MAX	;
+
+: $=	2 COMPARE 0=	;
+
+: $==	3 COMPARE 0=	;
+
+: $<	2 COMPARE 0<	;
+
+: $>	2 COMPARE 0>	;
+
+: C==	UP_CHAR SWAP
+	UP_CHAR =	;
+
+: STR_CONST
+	CREATE
+	  -1 >IN +!
+	  $" WORD DROP
+	  -2 ALLOT $" WORD
+	  2 ALLOT MOVE_IT
+	DOES>
+	  1+		;
+

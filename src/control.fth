@@ -1,0 +1,100 @@
+( FORTH 83 Cross compiler -  Control structure definitions )
+
+( Last modified		21 October 1986 )
+
+: >MARK	?COMP HERE 0 ,	;
+
+: >RESOLVE
+	?COMP HERE OVER -
+	SWAP !	;
+
+: <MARK	?COMP HERE	;
+
+: <RESOLVE
+	?COMP HERE - ,	;
+
+: IF	COMPILE ?BRANCH >MARK 1	;	IMMEDIATE
+
+: ELSE	1 ?PAIRS COMPILE BRANCH
+	>MARK
+	>R >RESOLVE R> 1	;	IMMEDIATE
+
+: THEN	1 ?PAIRS >RESOLVE	;	IMMEDIATE
+
+: abort"
+	?comp
+	[compile] if
+	compile cr
+	[compile] ."
+	compile abort
+	[compile] then	;	immediate
+
+: BEGIN	<MARK 2		;	IMMEDIATE
+
+: UNTIL	2 ?PAIRS
+	COMPILE ?BRANCH
+	<RESOLVE	;	IMMEDIATE
+
+: WHILE	[COMPILE] IF 2+	;	IMMEDIATE
+
+: REPEAT
+	>R >R 2 ?PAIRS
+	COMPILE BRANCH
+	<RESOLVE
+	R> R> 2- [COMPILE] THEN	;	IMMEDIATE
+
+: DO	do_list @ NIL do_list !
+	COMPILE (DO) <MARK -1	;	IMMEDIATE
+
+X: RESOLVE_LEAVES
+	-1 ?PAIRS <RESOLVE
+	do_list @
+	BEGIN
+	  DUP NIL <>
+	WHILE
+	  DUP @ SWAP
+	  >RESOLVE
+	REPEAT
+	DROP do_list !	;
+
+: LOOP	COMPILE (LOOP)
+	RESOLVE_LEAVES	;	IMMEDIATE
+
+: +LOOP	COMPILE (+LOOP)
+	RESOLVE_LEAVES	;	IMMEDIATE
+
+: LEAVE
+	COMPILE (LEAVE)
+	do_list @
+	HERE do_list ! ,	;	IMMEDIATE
+
+: CASE	?COMP
+	CSP @ CSP! four	;  IMMEDIATE
+
+X: TEST_EQUAL
+	OVER = DUP
+	IF SWAP DROP THEN ;
+
+: OF	four ?PAIRS
+	COMPILE TEST_EQUAL
+	COMPILE ?BRANCH
+	>MARK five		;  IMMEDIATE
+
+: ENDOF
+	five ?PAIRS
+	COMPILE BRANCH >MARK
+	SWAP 1
+	[COMPILE] THEN four   ;  IMMEDIATE
+
+: DEFAULT
+	?COMP COMPILE DROP ;   IMMEDIATE
+
+: ENDCASE
+	four ?PAIRS
+	BEGIN
+	  SP@ CSP @ -
+	WHILE
+	  1 [COMPILE] THEN
+	REPEAT
+	CSP !		;  IMMEDIATE
+
